@@ -5,7 +5,6 @@ import (
 	"event_processing_platform/internal/api/routes"
 	"event_processing_platform/internal/api/server"
 	"log"
-	"os"
 	"os/signal"
 	"syscall"
 	"time"
@@ -13,20 +12,29 @@ import (
 
 func main() {
 	app := server.NewHTTPServer()
+	routes.SetRoutes(app)
+	errChan := make(chan error, 1)
 
-	routes.SetRouters(app)
+	go func() {
+		errChan <- app.Start("localhost:8000")
+	}()
 
-	app.Start("localhost:8000")
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
+	defer stop()
 
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, syscall.SIGTERM, syscall.SIGINT)
+	select {
+	case <-ctx.Done():
+		log.Println("shutdown signal received")
+		ctxTimeout, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel()
 
-	<-sig
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
-	err := app.Stop(ctx)
-	if err != nil {
-		log.Fatal(err)
+		err := app.Stop(ctxTimeout)
+		if err != nil {
+			log.Fatal(err)
+		}
+	case err := <-errChan:
+		if err != nil {
+			log.Fatalf("server failed: %s\n", err.Error())
+		}
 	}
 }

@@ -5,7 +5,7 @@ import (
 	"event_processing_platform/internal/api/server"
 )
 
-func SetRouters(s *server.HTTPServer) {
+func SetRoutes(s *server.HTTPServer) {
 	app := s.GetApp()
 	app.Get("/healthz", handlers.Healthz)
 	app.Get("/readz", handlers.Readz)

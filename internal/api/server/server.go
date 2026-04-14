@@ -20,8 +20,8 @@ func (h *HTTPServer) GetApp() *fiber.App {
 	return h.app
 }
 
-func (h *HTTPServer) Start(addr string) {
-	go h.app.Listen(addr)
+func (h *HTTPServer) Start(addr string) error {
+	return h.app.Listen(addr)
 }
 
 func (h *HTTPServer) Stop(ctx context.Context) error {

@@ -74,12 +74,12 @@ func (j *JobQueue) Pop() (*Job, bool) {
 }
 
 func (j *JobQueue) Close() {
+	j.mu.Lock()
+	defer j.mu.Unlock()
 	if j.closed {
 		return
 	}
 
-	j.mu.Lock()
-	defer j.mu.Unlock()
 	j.closed = true
 
 	j.cond.Broadcast()

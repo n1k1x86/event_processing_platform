@@ -2,12 +2,12 @@ package jobs
 
 import "sync"
 
-type JobManager struct {
+type JobQueueManager struct {
 	storage map[JobType]*JobQueue
 	mu      sync.RWMutex
 }
 
-func (j *JobManager) RegisterJobQueue(jobType JobType, queue *JobQueue) error {
+func (j *JobQueueManager) RegisterJobQueue(jobType JobType, queue *JobQueue) error {
 	j.mu.Lock()
 	defer j.mu.Unlock()
 
@@ -20,7 +20,7 @@ func (j *JobManager) RegisterJobQueue(jobType JobType, queue *JobQueue) error {
 	return nil
 }
 
-func (j *JobManager) GetQueue(jobType JobType) (*JobQueue, error) {
+func (j *JobQueueManager) GetQueue(jobType JobType) (*JobQueue, error) {
 	j.mu.RLock()
 	defer j.mu.RUnlock()
 
@@ -31,7 +31,7 @@ func (j *JobManager) GetQueue(jobType JobType) (*JobQueue, error) {
 	return nil, ErrJobQueueNotFound
 }
 
-func (j *JobManager) CloseQueue(jobType JobType) error {
+func (j *JobQueueManager) CloseQueue(jobType JobType) error {
 	j.mu.Lock()
 	defer j.mu.Unlock()
 
@@ -42,7 +42,7 @@ func (j *JobManager) CloseQueue(jobType JobType) error {
 	return ErrJobQueueNotFound
 }
 
-func (j *JobManager) CloseAll() {
+func (j *JobQueueManager) CloseAll() {
 	j.mu.Lock()
 	defer j.mu.Unlock()
 
@@ -51,8 +51,8 @@ func (j *JobManager) CloseAll() {
 	}
 }
 
-func NewManager() *JobManager {
-	return &JobManager{
+func NewQueueManager() *JobQueueManager {
+	return &JobQueueManager{
 		storage: make(map[JobType]*JobQueue),
 	}
 }

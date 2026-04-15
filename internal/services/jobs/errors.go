@@ -16,3 +16,8 @@ var (
 	ErrJobHandlerNotFound      = errors.New("job handler not found")
 	ErrJobHandlerAlreadyExists = errors.New("job handler already registered")
 )
+
+var (
+	ErrParentContextDone        = errors.New("parent context done")
+	ErrJobRuntimeAlreadyStarted = errors.New("job runtime already started")
+)

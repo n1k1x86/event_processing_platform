@@ -21,3 +21,7 @@ var (
 	ErrParentContextDone        = errors.New("parent context done")
 	ErrJobRuntimeAlreadyStarted = errors.New("job runtime already started")
 )
+
+var (
+	ErrJobRuntimeAlreadyRegistered = errors.New("job runtime already registered")
+)

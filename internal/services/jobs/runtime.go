@@ -11,6 +11,7 @@ type JobRuntime struct {
 	workers         int
 	jobQueueManager *JobQueueManager
 	jobRegistry     *JobRegistry
+	resultSink      ResultSink
 	logger          *zap.Logger
 	parent          context.Context
 	ctx             context.Context
@@ -73,10 +74,16 @@ func (j *JobRuntime) Start() error {
 
 				job, ok := queue.Pop()
 				if ok {
-					err = j.jobRegistry.Handle(j.ctx, job)
+					result, err := j.jobRegistry.Handle(j.ctx, job)
 					if err != nil {
 						j.logger.Error("error while handling job", zap.Error(err))
+					} else if result != nil {
+						err = j.resultSink.PushResult(result)
+						if err != nil {
+							j.logger.Error("error while pushing result", zap.Error(err))
+						}
 					}
+
 				} else {
 					return
 				}
@@ -111,7 +118,7 @@ func (j *JobRuntime) stop() {
 }
 
 func NewJobRuntime(parent context.Context, workers int, jobQueueManager *JobQueueManager,
-	jobRegistry *JobRegistry, jobType JobType, logger *zap.Logger) *JobRuntime {
+	jobRegistry *JobRegistry, jobType JobType, logger *zap.Logger, resultSink ResultSink) *JobRuntime {
 	return &JobRuntime{
 		workers:         workers,
 		jobQueueManager: jobQueueManager,
@@ -120,5 +127,6 @@ func NewJobRuntime(parent context.Context, workers int, jobQueueManager *JobQueu
 		jobType:         jobType,
 		logger:          logger,
 		wg:              sync.WaitGroup{},
+		resultSink:      resultSink,
 	}
 }

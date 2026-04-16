@@ -6,7 +6,7 @@ import (
 )
 
 type JobHandler interface {
-	Execute(ctx context.Context, job *Job) error
+	Execute(ctx context.Context, job *Job) (*Result, error)
 }
 
 type JobRegistry struct {
@@ -20,13 +20,13 @@ func NewRegistry() *JobRegistry {
 	}
 }
 
-func (j *JobRegistry) Handle(ctx context.Context, job *Job) error {
+func (j *JobRegistry) Handle(ctx context.Context, job *Job) (*Result, error) {
 	j.mu.RLock()
 	handler, ok := j.handlers[job.Type]
 	j.mu.RUnlock()
 
 	if !ok {
-		return ErrJobHandlerNotFound
+		return nil, ErrJobHandlerNotFound
 	}
 	return handler.Execute(ctx, job)
 }

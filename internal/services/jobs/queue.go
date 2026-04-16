@@ -17,6 +17,14 @@ type Job struct {
 	Status  JobStatus       `json:"status"`
 }
 
+func NewJob(payload json.RawMessage, id uuid.UUID, jobType JobType) *Job {
+	return &Job{
+		Payload: payload,
+		ID:      id,
+		Type:    jobType,
+	}
+}
+
 type JobQueue struct {
 	queue   []*Job
 	mu      sync.Mutex

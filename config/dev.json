@@ -4,5 +4,12 @@
     },
     "http_server": {
         "addr": "localhost:8000"
+    },
+    "jobs":{
+        "send_email_job": {
+            "workers": 10,
+            "queue_size": 100,
+            "job_type": "send_email"
+        }
     }
 }

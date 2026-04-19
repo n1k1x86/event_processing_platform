@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"event_processing_platform/internal/services/jobs"
+	"net/http"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/google/uuid"
@@ -26,20 +27,20 @@ func JobsHandler(jobQueueManager *jobs.JobQueueManager, logger *zap.Logger) func
 		var reqBody JobHandlerRequestBody
 		err := json.Unmarshal(data, &reqBody)
 		if err != nil {
-			handleServerError(c, logger, "error while unmarshaling body into json", err)
-			return err
+			handleClientError(c, logger, "error while unmarshaling body into json", err, http.StatusUnprocessableEntity)
+			return nil
 		}
 		queue, err := jobQueueManager.GetQueue(jobs.JobType(reqBody.JobType))
 		if err != nil {
-			handleClientError(c, logger, "error while getting queue", err)
-			return err
+			handleClientError(c, logger, "error while getting queue", err, http.StatusNotFound)
+			return nil
 		}
 
 		job := jobs.NewJob(reqBody.Payload, uuid.New(), jobs.JobType(reqBody.JobType))
 		err = queue.Push(job)
 		if err != nil {
-			handleServerError(c, logger, "error while pushing job", err)
-			return err
+			handleServerError(c, logger, "error while pushing job", err, http.StatusTooManyRequests)
+			return nil
 		}
 
 		return nil

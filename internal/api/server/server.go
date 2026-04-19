@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -10,9 +11,14 @@ type HTTPServer struct {
 	app *fiber.App
 }
 
-func NewHTTPServer() *HTTPServer {
+func NewHTTPServer(readTimeout, writeTimeout time.Duration) *HTTPServer {
 	return &HTTPServer{
-		app: fiber.New(),
+		app: fiber.New(
+			fiber.Config{
+				ReadTimeout:  readTimeout,
+				WriteTimeout: writeTimeout,
+			},
+		),
 	}
 }
 

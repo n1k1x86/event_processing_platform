@@ -40,7 +40,7 @@ func (s *SendEmailHandler) Execute(ctx context.Context, job *jobs.Job) (*jobs.Re
 		return nil, err
 	}
 	r := SendEmailResult{
-		Info: fmt.Sprintf("message was sended from: %s, to: %s, title: %s, message: %s\n", p.From, p.To, p.Title, p.Message),
+		Info: fmt.Sprintf("message was sent from: %s, to: %s, title: %s, message: %s\n", p.From, p.To, p.Title, p.Message),
 	}
 	return &jobs.Result{
 		JobType: job.Type,

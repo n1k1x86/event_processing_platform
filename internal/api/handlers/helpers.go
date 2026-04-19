@@ -16,7 +16,7 @@ type HandlerServerError struct {
 	Details string `json:"details"`
 }
 
-func handleClientError(c fiber.Ctx, logger *zap.Logger, msg string, err error) {
+func handleClientError(c fiber.Ctx, logger *zap.Logger, msg string, err error, status int) {
 	logger.Error(msg, zap.Error(err))
 
 	e := HandlerClientError{
@@ -29,11 +29,11 @@ func handleClientError(c fiber.Ctx, logger *zap.Logger, msg string, err error) {
 		return
 	}
 
+	c.Status(status)
 	c.Write(data)
-	c.Status(http.StatusForbidden)
 }
 
-func handleServerError(c fiber.Ctx, logger *zap.Logger, msg string, err error) {
+func handleServerError(c fiber.Ctx, logger *zap.Logger, msg string, err error, status int) {
 	logger.Error(msg, zap.Error(err))
 
 	e := HandlerServerError{
@@ -46,6 +46,6 @@ func handleServerError(c fiber.Ctx, logger *zap.Logger, msg string, err error) {
 		return
 	}
 
+	c.Status(status)
 	c.Write(data)
-	c.Status(http.StatusInternalServerError)
 }

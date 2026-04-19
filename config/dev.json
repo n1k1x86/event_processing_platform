@@ -1,9 +1,15 @@
 {
     "app": {
-        "debug": true
+        "debug": true,
+        "graceful_timeout": "10s"
     },
     "http_server": {
-        "addr": "localhost:8000"
+        "addr": "localhost:8000",
+        "read_timeout": "5s",
+        "write_timeout": "10s"
+    },
+    "pprof_server": {
+        "addr": ":9090"
     },
     "jobs":{
         "send_email_job": {

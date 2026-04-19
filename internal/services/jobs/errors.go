@@ -25,3 +25,7 @@ var (
 var (
 	ErrJobRuntimeAlreadyRegistered = errors.New("job runtime already registered")
 )
+
+var (
+	ErrJobNotFound = errors.New("job was not found")
+)

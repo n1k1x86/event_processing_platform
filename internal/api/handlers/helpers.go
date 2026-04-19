@@ -17,7 +17,7 @@ type HandlerServerError struct {
 }
 
 func handleClientError(c fiber.Ctx, logger *zap.Logger, msg string, err error, status int) {
-	logger.Error(msg, zap.Error(err))
+	logger.Info(msg, zap.Error(err))
 
 	e := HandlerClientError{
 		Details: msg,

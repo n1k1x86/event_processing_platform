@@ -3,20 +3,31 @@ package jobs
 import (
 	"sync"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
 type JobRuntimeManager struct {
-	storage map[JobType]*JobRuntime
-	logger  *zap.Logger
-	mu      sync.RWMutex
+	storage    map[JobType]*JobRuntime
+	logger     *zap.Logger
+	mu         sync.RWMutex
+	jobStorage *JobStorage
 }
 
-func NewJobRuntimeManager(logger *zap.Logger) *JobRuntimeManager {
+func NewJobRuntimeManager(logger *zap.Logger, jobStorage *JobStorage) *JobRuntimeManager {
 	return &JobRuntimeManager{
-		storage: make(map[JobType]*JobRuntime),
-		logger:  logger,
+		storage:    make(map[JobType]*JobRuntime),
+		logger:     logger,
+		jobStorage: jobStorage,
 	}
+}
+
+func (j *JobRuntimeManager) GetJobStatus(id uuid.UUID) (string, error) {
+	status, err := j.jobStorage.GetJobStatus(id)
+	if err != nil {
+		return "", err
+	}
+	return string(status), nil
 }
 
 func (j *JobRuntimeManager) RegisterRuntime(jobType JobType, jobRuntime *JobRuntime) error {

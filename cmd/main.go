@@ -31,11 +31,13 @@ func main() {
 		_ = logger.Sync()
 	}()
 
-	jobRuntimeManager := jobs.NewJobRuntimeManager(logger)
+	jobStorage := jobs.NewJobStorager()
+
+	jobRuntimeManager := jobs.NewJobRuntimeManager(logger, jobStorage)
 	jobQueueManager := jobs.NewQueueManager()
 	jobRegistry := jobs.NewRegistry()
 
-	jobQueueSendEmail := jobs.InitJobQueue(cfg.Jobs.SendEmailJob.QueueSize, custom_jobs.SendEmailJob)
+	jobQueueSendEmail := jobs.InitJobQueue(cfg.Jobs.SendEmailJob.QueueSize, custom_jobs.SendEmailJob, jobStorage)
 	err = jobQueueManager.RegisterJobQueue(custom_jobs.SendEmailJob, jobQueueSendEmail)
 	if err != nil {
 		zaplogger.ExitWithError(logger, "error while registering queue", zap.Error(err))
@@ -49,7 +51,7 @@ func main() {
 	}
 
 	jobSendEmailRuntime := jobs.NewJobRuntime(parent, cfg.Jobs.SendEmailJob.Workers, jobQueueManager,
-		jobRegistry, custom_jobs.SendEmailJob, logger, jobResultSinkSendEmail)
+		jobRegistry, custom_jobs.SendEmailJob, logger, jobResultSinkSendEmail, jobStorage)
 
 	err = jobRuntimeManager.RegisterRuntime(custom_jobs.SendEmailJob, jobSendEmailRuntime)
 	if err != nil {
@@ -61,7 +63,7 @@ func main() {
 	app := server.NewHTTPServer(cfg.HTTPServer.ReadTimeout.Duration, cfg.HTTPServer.WriteTimeout.Duration)
 	pprofServer := server.NewPprofServer(cfg.PprofServer.Addr, logger)
 
-	routes.SetJobsRoutes(app, jobQueueManager, logger)
+	routes.SetJobsRoutes(app, jobQueueManager, jobRuntimeManager, logger)
 	routes.SetHealthRoutes(app)
 
 	errChan := make(chan error, 1)

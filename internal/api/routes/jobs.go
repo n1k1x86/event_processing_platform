@@ -8,7 +8,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func SetJobsRoutes(s *server.HTTPServer, jobQueueManager *jobs.JobQueueManager, logger *zap.Logger) {
+func SetJobsRoutes(s *server.HTTPServer, jobQueueManager *jobs.JobQueueManager, jobsRuntimeManager *jobs.JobRuntimeManager, logger *zap.Logger) {
 	app := s.GetApp()
 	app.Post("/jobs", handlers.JobsHandler(jobQueueManager, logger))
+	app.Get("/jobs/:id", handlers.JobsStatusHandler(jobsRuntimeManager, logger))
 }

@@ -10,35 +10,44 @@ import (
 type JobType string
 type JobStatus string
 
+var (
+	JobPending           JobStatus = "Pending"
+	JobProcessing        JobStatus = "Processing"
+	JobFinishedWithError JobStatus = "Finished with error"
+	JobFinished          JobStatus = "Finished"
+)
+
 type Job struct {
 	Payload json.RawMessage `json:"payload"`
 	ID      uuid.UUID       `json:"id"`
 	Type    JobType         `json:"type"`
-	Status  JobStatus       `json:"status"`
 }
 
-func NewJob(payload json.RawMessage, id uuid.UUID, jobType JobType) *Job {
+func NewJob(payload json.RawMessage, jobType JobType) (*Job, uuid.UUID) {
+	jobID := uuid.New()
 	return &Job{
 		Payload: payload,
-		ID:      id,
+		ID:      jobID,
 		Type:    jobType,
-	}
+	}, jobID
 }
 
 type JobQueue struct {
-	queue   []*Job
-	mu      sync.Mutex
-	size    int
-	cond    *sync.Cond
-	jobType JobType
-	closed  bool
+	queue      []*Job
+	mu         sync.Mutex
+	size       int
+	cond       *sync.Cond
+	jobType    JobType
+	closed     bool
+	jobStorage *JobStorage
 }
 
-func InitJobQueue(size int, jobType JobType) *JobQueue {
+func InitJobQueue(size int, jobType JobType, jobStorage *JobStorage) *JobQueue {
 	q := &JobQueue{
-		queue:   make([]*Job, 0, size),
-		size:    size,
-		jobType: jobType,
+		queue:      make([]*Job, 0, size),
+		size:       size,
+		jobType:    jobType,
+		jobStorage: jobStorage,
 	}
 	q.cond = sync.NewCond(&q.mu)
 
@@ -58,6 +67,7 @@ func (j *JobQueue) Push(job *Job) error {
 	}
 
 	j.queue = append(j.queue, job)
+	j.jobStorage.Set(job.ID, JobPending)
 	j.cond.Signal()
 
 	return nil
